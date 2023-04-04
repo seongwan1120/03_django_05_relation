@@ -1,16 +1,22 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_POST, require_safe, require_http_methods
+from django.contrib.auth.decorators import login_required
+
 from .models import Posting, Reply
 from .forms import PostingForm, ReplyForm
 
 # Create your views here.
 
+# 로그인 안 하고 글쓰는 URL 접속하고 무언가 찾아내기.
+@login_required
 @require_http_methods(['GET', 'POST'])
 def create_posting(request):
     if request.method == 'POST':
         form = PostingForm(request.POST)
         if form.is_valid():
-            posting = form.save()
+            posting = form.save(commit=False)
+            posting.user = request.user
+            posting.save()
             return redirect('blog:posting_detail', posting.pk)
     
     # elif request.method == 'GET':
@@ -45,10 +51,14 @@ def posting_detail(request, posting_pk):
         'form': form,
     })
 
+@login_required
 @require_http_methods(['GET', 'POST'])
 def update_posting(request, posting_pk):
     posting = get_object_or_404(Posting, pk=posting_pk)
     
+    if request.user != posting.user:
+        return redirect('blog:posting_index') 
+
     if request.method == 'POST':
         form = PostingForm(request.POST, instance=posting)
         if form.is_valid():
@@ -62,20 +72,27 @@ def update_posting(request, posting_pk):
         'form':form,
     })
 
+@login_required
 @require_POST
 def delete_posting(request, posting_pk):
     posting = get_object_or_404(Posting, pk=posting_pk)
+
+    if request.user != posting.user:
+        return redirect('blog:posting_index') 
+
     posting.delete()
 
     return redirect('blog:posting_index')
 
+@login_required
 @require_POST
 def create_reply(request, posting_pk):
     posting = get_object_or_404(Posting, pk=posting_pk)
     form = ReplyForm(request.POST)
     if form.is_valid():
         reply = form.save(commit=False)  # 저장 중지. forms.py를 보면 content만 가져왔다. 전체를 가져오면 구분이 안 되기 때문이다.
-        reply.posting = posting  # FK 직접 삽입
+        reply.posting = posting  # 비어있는 column에 FK 직접 삽입.
+        reply.user = request.user
         reply.save()
         return redirect('blog:posting_detail', posting.pk)
     '''
@@ -91,11 +108,13 @@ def create_reply(request, posting_pk):
         
     '''
 
-
+@login_required
 @require_POST
 def delete_reply(request, posting_pk, reply_pk):
     posting = get_object_or_404(Posting, pk=posting_pk)
     reply = get_object_or_404(Reply, pk=reply_pk)
-    reply.delete()
+
+    if request.user == reply.user:
+       reply.delete()
 
     return redirect('blog:posting_detail', posting.pk)

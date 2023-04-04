@@ -16,7 +16,10 @@
     </form>
 </p>
 
+{% if request.user.is_authenticated %}
+
 {% include 'blog/_reply_form.html' %}
+{% endif %}
 {% include 'blog/_reply_list.html' %}
 
 {% endblock content %}

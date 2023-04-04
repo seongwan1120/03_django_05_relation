@@ -42,6 +42,7 @@ INSTALLED_APPS = [
 
     'one_to_many',
     'blog',
+    'accounts',
 ]
 
 MIDDLEWARE = [
@@ -108,7 +109,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+# LANGUAGE_CODE = 'en-us'
+
+LANGUAGE_CODE = 'ko-kr'
 
 TIME_ZONE = 'UTC'
 
@@ -128,3 +131,10 @@ STATIC_URL = '/static/'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Custom User를 만들 경우, AUTH_USER_MODEL 세팅 필요.
+AUTH_USER_MODEL = 'accounts.User'
+
+# @login_required 데코레이터에 걸릴 경우에 기본적으로 /accounts/login/으로 가도록 설정되어 있다.
+# LOGIN_URL을 통해 직접 변경 가능하다.
+LOGIN_URL = '/accounts/signin/'
