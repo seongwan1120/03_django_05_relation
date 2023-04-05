@@ -15,7 +15,21 @@
         <button>삭제</button>
     </form>
 </p>
+<!-- 좋아요 -->
+{% if request.user.is_authenticated %}
+<form action="{% url 'blog:like_posting' posting.pk %}" method="POST">
+    {% csrf_token %}
 
+    {% comment %} {% if is_like %}
+    <button> 좋아요 취소 ({{ posting.like_users.count }}) </button> 
+    {% else %}
+    <button> 좋아요 </button>
+    {% endif %} {% endcomment %}
+    <button> {{ button_text }} ({{ posting.like_users.count }}) </button> 
+</form>
+{% endif %}
+
+<!-- 현재 사용자가 로그인 했을 때만 보여주기 -->
 {% if request.user.is_authenticated %}
 
 {% include 'blog/_reply_form.html' %}

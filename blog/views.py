@@ -45,10 +45,14 @@ def posting_detail(request, posting_pk):
     # 댓글 create도 posting_detail 페이지에서 진행.
     form = ReplyForm()
 
+    is_like = posting.like_users.filter(pk=request.user.pk).exists()
+    button_text = '좋아요 취소' if is_like else '좋아요.'
     return render(request, 'blog/detail.html', {
         'posting': posting,
         'replies': replies,
         'form': form,
+        # 'is_like': is_like,
+        'button_text': button_text,
     })
 
 @login_required
@@ -117,4 +121,18 @@ def delete_reply(request, posting_pk, reply_pk):
     if request.user == reply.user:
        reply.delete()
 
+    return redirect('blog:posting_detail', posting.pk)
+
+@login_required
+@require_POST
+def like_posting(request, posting_pk):
+    posting = get_object_or_404(Posting, pk=posting_pk)
+    user = request.user
+    # if user in posting.like_users.all():  # 기존 좋아요 사용자 목록에 있으면
+    if posting.like_users.filter(pk=user.pk).exists():  # DB에 맞게 최적화. 반복 연산을 없앤다.
+        # 좋아요 취소
+        posting.like_users.remove(user)
+    else:  # 없으면
+        #좋아요 추가  
+        posting.like_users.add(user)
     return redirect('blog:posting_detail', posting.pk)
