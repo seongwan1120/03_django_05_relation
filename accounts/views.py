@@ -1,10 +1,14 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_http_methods, require_POST, require_safe
 from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth import login, logout
+from django.contrib.auth import login, logout, get_user_model
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseBadRequest
 
 from .forms import CustomUserCreationForm
 # Create your views here.
+
+User = get_user_model()
 
 @require_http_methods(['GET', 'POST'])
 def signup(request):
@@ -60,3 +64,33 @@ def signin(request):
 def signout(request):
     logout(request)
     return redirect('blog:posting_index')
+
+def profile(request, username):
+    # username(column name) = username(var routing 변수명)
+    profile_user = get_object_or_404(User, username=username)
+
+    is_following = request.user.stars.filter(pk=profile_user.pk).exists()
+    # button_text = '팔로우 취소' if is_following else '팔로우'
+
+    return render(request, 'accounts/profile.html', {
+        'profile_user': profile_user,
+        # 'button_text': button_text,
+        'is_following': is_following,
+    })
+
+    
+
+@login_required
+@require_POST
+def follow(request, username):
+    the_other = get_object_or_404(User, username=username)
+    one = request.user
+    
+    if one == the_other:
+        return HttpResponseBadRequest('Can not follow yourself.')
+
+    if one.stars.filter(pk=the_other.pk).exists(): 
+        one.stars.remove(the_other)
+    else: 
+        one.stars.add(the_other)
+    return redirect('accounts:profile', the_other.username)

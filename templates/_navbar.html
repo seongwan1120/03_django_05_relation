@@ -4,12 +4,17 @@
         <li>
             {{ request.user }}님 안녕하세요!
         </li>
+        <li><a href="{% url 'blog:posting_index' %}"> Home </a></li>
         <!-- 인증(로그인)된 사용자라면-->
-        <li><a href="{% url 'blog:posting_index' %}">Blog Home</a></li>
         {% if request.user.is_authenticated %}
         <li><a href="{% url 'blog:create_posting' %}">New Posting</a></li>
         <li>
             <a href="{% url 'accounts:signout' %}">Logout</a>
+        <li>
+            <a href="{% url 'accounts:profile' request.user %}">
+                {{ request.user }}'s Profile
+            </a>
+        </li>
         </li>
         <!-- 인증(로그인)되지 않은 사용자라면-->
         {% else %}
